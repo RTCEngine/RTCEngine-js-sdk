@@ -149,7 +149,7 @@ gulp.task('livebrowser', (done) =>
 
 gulp.task('html', () =>
 {
-	return gulp.src(['index.html','mixer.html','video-stream-merger.js'])
+	return gulp.src(['example/index.html'])
         .pipe(replace('=timestamp','='+ Math.random().toString(36).substring(7)))
 		.pipe(gulp.dest(DEV_OUTPUT_DIR));
 });
@@ -158,7 +158,7 @@ gulp.task('html', () =>
 gulp.task('watch', (done) =>
 {
 	// Watch changes in HTML.
-	gulp.watch([ 'index.html','mixer.html'], gulp.series(
+	gulp.watch([ 'example/index.html'], gulp.series(
 		'html'
 	));
 
@@ -181,7 +181,7 @@ gulp.task('live', gulp.series(
     'livebrowser'    
 ));
 
-gulp.task('dev', gulp.series('lint', 'browserify'));
+gulp.task('dev', gulp.series('lint', 'browserify','html'));
 
 gulp.task('dist', gulp.series('lint', 'browserify', 'uglify'));
 

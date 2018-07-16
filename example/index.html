@@ -1,0 +1,426 @@
+
+<!doctype html>
+<html>
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=UTF-8'>
+<title> RTCEngine  </title>
+<style type="text/css">
+	.room {
+		cursor: pointer;
+	}
+	div.select {
+      display: inline-block;
+      margin: 0 0 1em 0;
+    }
+</style>
+
+<script src='/rtcengine-js-sdk.js?t=timestamp'></script>
+<script type='text/javascript'>
+
+window.localStorage.setItem('debug', '* *WARN* *ERROR*');
+
+
+let appSecret = 'test_secret';
+let room = 'tes_troom';
+let user = Math.random().toString(36).substring(7);
+
+let tokenUrl = 'http://localhost:3888/api/generateToken'
+
+let localVideo = null;
+let localVideo2 = null;
+let remoteContainer = null;
+
+
+let rtcEngine = null;
+let localStream = null;
+let localStream2 = null;
+
+let videoSelect = null;
+let audioSelect = null; 
+
+let currentAudioSource = null;
+let currentVideoSource = null;
+let audioMute = false;
+
+function videoStartSelect() {
+	var videoSource = videoSelect.value;
+	console.log('video souce ', videoSource);
+	if(currentVideoSource != videoSource){
+		currentVideoSource = videoSource;
+		localStream.changeVideoInput(currentVideoSource);
+	}
+}
+
+function audioStartSelect() {
+	var audioSource = audioSelect.value;
+	console.log('audio souce ', audioSource)
+	
+	if(currentAudioSource != audioSource) {
+		currentAudioSource = audioSource;
+		localStream.changeAudioInput(currentAudioSource)
+	}
+}
+
+
+function gotDevices(deviceInfos) {
+
+	for(var i= 0; i !== deviceInfos.length; ++i){
+		var deviceInfo = deviceInfos[i];
+		var option = document.createElement('option');
+		option.value = deviceInfo.deviceId;
+		if(deviceInfo.kind === 'videoinput'){
+			option.text = deviceInfo.label;
+			videoSelect.appendChild(option);
+			console.log('video souce  ', deviceInfo.deviceId);
+		}
+		if(deviceInfo.kind === 'audioinput'){
+			option.text = deviceInfo.label;
+			audioSelect.appendChild(option);
+			console.log('audio souce ', deviceInfo.deviceId);
+		}
+	}
+}
+
+Í
+
+function init() {
+
+	localVideo = document.getElementById('local_video');
+
+	remoteContainer = document.getElementById('remote_container');
+
+	videoSelect =  document.getElementById('videoSource');
+	audioSelect =  document.getElementById('audioSource');
+
+
+	navigator.mediaDevices.enumerateDevices().then(gotDevices)
+
+	videoSelect.onchange = videoStartSelect;
+	audioSelect.onchange = audioStartSelect;
+
+	rtcEngine = new RTCEngine();
+	localStream = new RTCStream({audio:true,video:true,attributes:{
+        test:'test'
+    }});
+
+	localStream.addListener('errors', (error) => {
+
+		console.log('errors ', error);
+	});
+
+	localStream.setupLocalMedia();
+	
+
+	localStream.addListener('initLocalStream', ()=> {
+
+		console.log('initLocalStream =====');
+		
+		playVideo(localStream);
+
+	});
+
+	localStream.addListener('localStreamUpdate', (stream) => {
+
+		console.log('localStream update');
+	});
+
+	localStream.addListener('shutdownLocalMedia',()=> {
+
+		console.log('shutdownLocalMedia');
+        let _localVideo = localVideo.firstChild;
+        while( _localVideo ) {
+            localVideo.removeChild(_localVideo);
+            _localVideo = localVideo.firstChild;
+        }
+        
+	});
+
+	rtcEngine.addListener('addLocalStream',(stream) => {
+
+		console.log('addLocalStream =========', stream);
+
+	});
+
+	rtcEngine.addListener('removeLocalStream', (stream) => {
+        
+		console.log('removeLocalStream ======', stream);
+	});
+
+	rtcEngine.addListener('addRemoteStream', (stream) => {
+		console.log('addRemoteStream ', stream);
+        console.log('remoteStream getAttributes',stream.getAttributes())
+        if(stream.getAttributes().merger) {
+            addBigRemoteVideo(stream);
+        }
+	});
+
+	rtcEngine.addListener('removeRemoteStream', (stream) => {
+
+		console.log('removeRemoteStream ', stream);
+
+		removeRemoteVideo(stream.streamId, stream.mediastream);
+	});
+
+	rtcEngine.addListener('state', (newState) => {
+
+		console.log('state change ', newState);
+
+	});
+
+	rtcEngine.addListener('peerConnected', (peerId) => {
+
+		console.log('new peer come ', peerId);
+	});
+
+	rtcEngine.addListener('peerRemoved', (peerId) => {
+
+		console.log('peer has leave ', peerId);
+	});
+
+	rtcEngine.addListener('muteRemoteVideo',(stream,muted) => {
+
+		console.log('remote stream ', stream.streamId);
+
+		console.log('remote stream video muted ', muted);
+
+	});
+
+	rtcEngine.addListener('muteRemoteAudio',(stream, muted) => {
+
+		console.log('remote stream ', stream.streamId);
+		console.log('remote stream audio muted ', muted);
+	});
+
+
+	rtcEngine.addListener('audioLevel', (stream, audioLevel) => {
+		
+		console.log('stream  audioLevel ', stream.streamId, ' audioLevel ', audioLevel);
+	});
+
+	rtcEngine.addListener('state', (state) => {
+
+		if(state === rtcEngine.CONNECTED){
+			console.log('addStream ');
+			rtcEngine.addStream(localStream);
+		}
+
+
+	});
+
+	rtcEngine.generateTestToken(tokenUrl,appSecret,room,user,(error,token) => {
+		
+		if(!error) {
+			rtcEngine.joinRoom(token);
+		}
+	});
+	
+
+
+}
+
+
+
+// function playVideo(element, stream) {
+// 	if ('srcObject' in element) {
+// 		element.srcObject = stream;
+// 	}
+// 	else {
+// 		element.src = window.URL.createObjectURL(stream);
+// 	}
+// 	element.play();
+// 	element.volume = 1;
+// }
+
+
+
+function playVideo(stream) {
+	local_video.appendChild(stream.videoElement);
+}
+
+function addRemoteVideo(stream) {
+	// let element = document.createElement('video');
+	// remoteContainer.appendChild(element);
+	// element.id = 'remote_' + id;
+	// element.width = 320;
+	// element.height = 240;
+	// element.srcObject = stream;
+	// element.play();
+	// element.volume = 0;
+	// element.controls = true;
+	stream.videoElement.id = 'remote_' + stream.streamId;
+	remoteContainer.appendChild(stream.videoElement);	
+}
+
+
+function addBigRemoteVideo(stream) {
+	// let element = document.createElement('video');
+	// remoteContainer.appendChild(element);
+	// element.id = 'remote_' + id;
+	// element.width = 320;
+	// element.height = 240;
+	// element.srcObject = stream;
+	// element.play();
+	// element.volume = 0;
+	// element.controls = true;
+    stream.videoElement.width = 480;
+    stream.videoElement.height = 480;
+	stream.videoElement.id = 'remote_' + stream.streamId;
+	remoteContainer.appendChild(stream.videoElement);	
+}
+
+
+function muteAudio() {
+    audioMute = !audioMute;
+    localStream.mute()
+}
+
+function removeRemoteVideo(id, stream) {
+	console.log('Remote video removed id: ' + id);
+	let element = document.getElementById('remote_' + id);
+	if (element) {
+		// element.pause();
+		// element.srcObject = null;
+		remoteContainer.removeChild(element);
+	}
+	else {
+		console.log('Remote video element not found');
+	}
+}
+
+function removeAllRemoteVideo() {
+	while (remoteContainer.firstChild) {
+		remoteContainer.firstChild.pause();
+		remoteContainer.firstChild.srcObject = null;
+		remoteContainer.removeChild(remoteContainer.firstChild);
+	}
+}
+
+function updateView() {
+	if (peerConnection) {
+		hideElement('roomsSelect');
+		showElement('conference');
+		enabelElement('disconnect_button');
+	}
+	else {
+		showElement('roomsSelect');
+		hideElement('conference');
+		disableElement('disconnect_button');
+	}
+}
+
+function enabelElement(id) {
+	let element = document.getElementById(id);
+	if (element) {
+		element.removeAttribute('disabled');
+	}
+}
+
+function disableElement(id) {
+	let element = document.getElementById(id);
+	if (element) {
+		element.setAttribute('disabled', '1');
+	}		
+}
+
+function hideElement(id) {
+	let element = document.getElementById(id);
+	if (element) {
+		element.style.display = 'none';
+	}
+}
+
+function showElement(id) {
+	let element = document.getElementById(id);
+	if (element) {
+		element.style.display = 'block';
+	}		
+}
+
+function removeStream(){
+	rtcEngine.removeStream(localStream);
+}
+
+
+function removeAndAdd() {
+    rtcEngine.removeStream(localStream);
+    localStream.shutdownLocalMedia();
+    setTimeout(function() {
+        rtcEngine.addStream(localStream);
+    },3000);
+}
+
+
+function addSecondStream(){
+    navigator.getUserMedia({
+        audio:true,
+        video:true
+    },function(stream){
+
+        console.log('got second stream');
+        localStream2 = new RTCStream({stream:stream,audio:true,video:true})
+        rtcEngine.addStream(localStream2);
+        playVideo(localStream2);
+
+    },function(err){
+        console.error(err)
+    });
+}
+
+function setAttributes(){
+    localStream.setAttributes({msid:localStream.streamId})
+}
+
+function leaveRoom() {
+    rtcEngine.leaveRoom()
+}
+ 
+</script>
+</head>
+<body onload="init();">
+	<h1>RTCEngine  Demo</h1>
+	<div id="roomsSelect">
+	</div>
+
+	<br/>
+
+	<div id="conference">
+		<div>
+			Local video<br />
+			<div id="local_video"  style="width: 320px; height: 240px; border: 1px solid black;"></div>
+
+			<div class="select">
+			<label for="videoSource">Video source: </label><select id="videoSource"></select>
+			</div>
+
+			<div class="select">
+			<label for="audioSource">Audio source: </label><select id="audioSource"></select>
+			</div>
+            <br/>
+
+            <button onclick="muteAudio();">
+                muteAudio 
+            </button>
+			<button onclick="removeStream();">
+				removeStream
+			</button>
+            <button onclick="removeAndAdd();">
+                removeAndAdd
+            </button>
+            <button onclick="addSecondStream();">
+                addSecondStream 
+            </button>
+            <button onclick="setAttributes();">
+                setAttribute
+            </button>
+            <button onclick="leaveRoom();">
+                leaveRoom
+            </button>
+            
+			<span id="state_span">  </span>
+		</div>
+		Remote videos:
+		<br />
+		<div id="remote_container"></div>
+	</div>
+</body>
+</html>
