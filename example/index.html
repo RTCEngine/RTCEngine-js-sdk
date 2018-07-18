@@ -27,7 +27,6 @@ let user = Math.random().toString(36).substring(7);
 let tokenUrl = 'http://localhost:3888/api/generateToken'
 
 let localVideo = null;
-let localVideo2 = null;
 let remoteContainer = null;
 
 
@@ -81,7 +80,6 @@ function gotDevices(deviceInfos) {
 	}
 }
 
-Í
 
 function init() {
 
@@ -149,9 +147,7 @@ function init() {
 	rtcEngine.addListener('addRemoteStream', (stream) => {
 		console.log('addRemoteStream ', stream);
         console.log('remoteStream getAttributes',stream.getAttributes())
-        if(stream.getAttributes().merger) {
-            addBigRemoteVideo(stream);
-        }
+        addRemoteVideo(stream);
 	});
 
 	rtcEngine.addListener('removeRemoteStream', (stream) => {
@@ -199,7 +195,7 @@ function init() {
 
 	rtcEngine.addListener('state', (state) => {
 
-		if(state === rtcEngine.CONNECTED){
+		if(state === RTCEngine.CONNECTED){
 			console.log('addStream ');
 			rtcEngine.addStream(localStream);
 		}
@@ -247,23 +243,6 @@ function addRemoteVideo(stream) {
 	// element.play();
 	// element.volume = 0;
 	// element.controls = true;
-	stream.videoElement.id = 'remote_' + stream.streamId;
-	remoteContainer.appendChild(stream.videoElement);	
-}
-
-
-function addBigRemoteVideo(stream) {
-	// let element = document.createElement('video');
-	// remoteContainer.appendChild(element);
-	// element.id = 'remote_' + id;
-	// element.width = 320;
-	// element.height = 240;
-	// element.srcObject = stream;
-	// element.play();
-	// element.volume = 0;
-	// element.controls = true;
-    stream.videoElement.width = 480;
-    stream.videoElement.height = 480;
 	stream.videoElement.id = 'remote_' + stream.streamId;
 	remoteContainer.appendChild(stream.videoElement);	
 }
@@ -351,19 +330,7 @@ function removeAndAdd() {
 
 
 function addSecondStream(){
-    navigator.getUserMedia({
-        audio:true,
-        video:true
-    },function(stream){
-
-        console.log('got second stream');
-        localStream2 = new RTCStream({stream:stream,audio:true,video:true})
-        rtcEngine.addStream(localStream2);
-        playVideo(localStream2);
-
-    },function(err){
-        console.error(err)
-    });
+    
 }
 
 function setAttributes(){

@@ -24,7 +24,7 @@
     "retry": "^0.10.1",
     "sdp-transform": "^2.4.1",
     "socket.io-client": "^2.1.1",
-    "webrtc-adapter": "^6.2.1"
+    "webrtc-adapter": "^6.3.0"
   },
   "devDependencies": {
     "babel-plugin-transform-object-assign": "^6.22.0",
