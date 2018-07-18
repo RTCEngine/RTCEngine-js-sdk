@@ -194,9 +194,9 @@ function init() {
 	});
 
 	rtcEngine.addListener('state', (state) => {
-
+        
 		if(state === RTCEngine.CONNECTED){
-			console.log('addStream ');
+			console.error('addStream  ======================================');
 			rtcEngine.addStream(localStream);
 		}
 
@@ -234,15 +234,7 @@ function playVideo(stream) {
 }
 
 function addRemoteVideo(stream) {
-	// let element = document.createElement('video');
-	// remoteContainer.appendChild(element);
-	// element.id = 'remote_' + id;
-	// element.width = 320;
-	// element.height = 240;
-	// element.srcObject = stream;
-	// element.play();
-	// element.volume = 0;
-	// element.controls = true;
+
 	stream.videoElement.id = 'remote_' + stream.streamId;
 	remoteContainer.appendChild(stream.videoElement);	
 }
