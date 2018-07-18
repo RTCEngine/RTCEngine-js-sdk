@@ -196,7 +196,6 @@ function init() {
 	rtcEngine.addListener('state', (state) => {
         
 		if(state === RTCEngine.CONNECTED){
-			console.error('addStream  ======================================');
 			rtcEngine.addStream(localStream);
 		}
 
@@ -322,7 +321,13 @@ function removeAndAdd() {
 
 
 function addSecondStream(){
-    
+
+    localStream2 = new RTCStream({audio:true,video:true,attributes:{
+        test:'test2'
+    }})
+
+    rtcEngine.addStream(localStream2);
+
 }
 
 function setAttributes(){
