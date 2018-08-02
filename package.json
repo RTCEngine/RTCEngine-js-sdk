@@ -39,7 +39,7 @@
     "gulp": "^4.0.0",
     "gulp-env": "^0.4.0",
     "gulp-eslint": "^3.0.1",
-    "gulp-expect-file": "0.0.7",
+    "gulp-expect-file": "^1.0.0",
     "gulp-filelog": "^0.4.1",
     "gulp-header": "^1.8.12",
     "gulp-if": "^2.0.2",
