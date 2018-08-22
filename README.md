@@ -3,6 +3,38 @@
 [![Build Status](https://travis-ci.org/RTCEngine/RTCEngine-js-sdk.svg?branch=master)](https://travis-ci.org/RTCEngine/RTCEngine-js-sdk)
 
 
-RTCEngine js sdk docs
+
+
+## Install and Run 
+
+
+-  Set up the server
+
+
+```
+
+git clone https://github.com/RTCEngine/RTCEngine-server.git
+
+cd RTCEngine-server && npm install 
+
+DEBUG=* ts server.ts
+
+```
+
+
+- Set up js sdk 
+
+
+```
+
+git clone https://github.com/RTCEngine/RTCEngine-js-sdk.git
+
+cd RTCEngine-js-sdk 
+
+npm install && npm install --only=dev
+
+gulp default
+
+```
 
 
