@@ -145,7 +145,6 @@ function init() {
 
 	rtcEngine.addListener('addRemoteStream', (stream) => {
 		console.log('addRemoteStream ', stream);
-        console.log('remoteStream getAttributes',stream.getAttributes())
         addRemoteVideo(stream);
 	});
 
