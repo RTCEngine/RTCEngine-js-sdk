@@ -23,7 +23,7 @@ let appSecret = 'test_secret';
 let room = 'tes_troom';
 let user = Math.random().toString(36).substring(7);
 
-let tokenUrl = 'http://localhost:3888/api/generateToken'
+let tokenUrl = 'http://127.0.0.1:3888/api/generateToken'
 
 let localVideo = null;
 let remoteContainer = null;
@@ -197,7 +197,6 @@ function init() {
 			rtcEngine.addStream(localStream);
 		}
 
-
 	});
 
 	rtcEngine.generateTestToken(tokenUrl,appSecret,room,user,(error,token) => {
@@ -234,6 +233,7 @@ function addRemoteVideo(stream) {
 
 	stream.videoElement.id = 'remote_' + stream.streamId;
 	remoteContainer.appendChild(stream.videoElement);	
+	console.error("errrr================");
 }
 
 
