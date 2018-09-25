@@ -23,7 +23,7 @@ let appSecret = 'test_secret';
 let room = 'tes_troom';
 let user = Math.random().toString(36).substring(7);
 
-let tokenUrl = 'http://192.168.203.8:3888/api/generateToken'
+let tokenUrl = 'http://rtcengine.dot.cc/api/generateToken'
 
 let localVideo = null;
 let remoteContainer = null;
@@ -32,6 +32,7 @@ let remoteContainer = null;
 let rtcEngine = null;
 let localStream = null;
 let localStream2 = null;
+let remoteStream = null;
 
 let videoSelect = null;
 let audioSelect = null; 
@@ -39,6 +40,25 @@ let audioSelect = null;
 let currentAudioSource = null;
 let currentVideoSource = null;
 let audioMute = false;
+let remoteVideoMute = false;
+
+
+
+function muteLocalVideo(){
+	remoteVideoMute = !remoteVideoMute;
+
+	localStream.muteVideo(remoteVideoMute);
+}
+
+function muteRemoteVideo() {
+
+	remoteVideoMute = !remoteVideoMute;
+
+	if(remoteStream) {
+		remoteStream.muteVideo(remoteVideoMute);
+	}
+	
+}
 
 function videoStartSelect() {
 	var videoSource = videoSelect.value;
@@ -231,6 +251,7 @@ function playVideo(stream) {
 
 function addRemoteVideo(stream) {
 
+	remoteStream = stream;
 	stream.videoElement.id = 'remote_' + stream.streamId;
 	remoteContainer.appendChild(stream.videoElement);
 }
@@ -356,10 +377,13 @@ function leaveRoom() {
 			<div class="select">
 			<label for="audioSource">Audio source: </label><select id="audioSource"></select>
 			</div>
-            <br/>
-
-            <button onclick="muteAudio();">
-                muteAudio 
+			<br/>
+			
+			<button onclick="muteLocalVideo();">
+                muteLocalVideo 
+			</button>
+			<button onclick="muteRemoteVideo();">
+                muteRemoteVideo 
             </button>
 			<button onclick="removeStream();">
 				removeStream
