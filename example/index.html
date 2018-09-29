@@ -17,13 +17,13 @@
 <script src='/rtcengine-js-sdk.js?t=timestamp'></script>
 <script type='text/javascript'>
 
-window.localStorage.setItem('debug', '* *WARN* *ERROR*');
+window.localStorage.setItem('debug', '*WARN* *ERROR*');
 
 let appSecret = 'test_secret';
-let room = 'tes_troom';
+let room = 'test_room';
 let user = Math.random().toString(36).substring(7);
 
-let tokenUrl = 'http://192.168.201.152:3888/api/generateToken'
+let tokenUrl = 'http://rtcengine.dot.cc/api/generateToken'
 
 let localVideo = null;
 let remoteContainer = null;
