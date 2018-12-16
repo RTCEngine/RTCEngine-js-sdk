@@ -23,7 +23,7 @@ let appSecret = 'test_secret';
 let room = 'test_room';
 let user = Math.random().toString(36).substring(7);
 
-let tokenUrl = 'https://rtc.xueersi.com/api/generateToken'
+let tokenUrl = 'http://localhost:3888/api/generateToken'
 
 let localVideo = null;
 let remoteContainer = null;
@@ -125,7 +125,7 @@ function init() {
 		console.log('errors ', error);
 	});
 
-	localStream.setupLocalMedia();
+	//localStream.setupLocalMedia();
 	
 
 	localStream.addListener('initLocalStream', ()=> {
