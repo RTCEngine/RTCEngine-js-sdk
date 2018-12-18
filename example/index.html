@@ -356,6 +356,10 @@ function setAttributes(){
 function leaveRoom() {
     rtcEngine.leaveRoom()
 }
+
+function requestStream() {
+	rtcEngine.test()
+}
  
 </script>
 </head>
@@ -400,6 +404,10 @@ function leaveRoom() {
             </button>
             <button onclick="leaveRoom();">
                 leaveRoom
+			</button>
+			
+			<button onclick="requestStream();">
+                requestStream
             </button>
             
 			<span id="state_span">  </span>
