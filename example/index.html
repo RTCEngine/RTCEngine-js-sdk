@@ -100,7 +100,7 @@ function gotDevices(deviceInfos) {
 }
 
 
-function init() {
+async function init() {
 
 	localVideo = document.getElementById('local_video');
 
@@ -118,21 +118,21 @@ function init() {
 	rtcEngine = new RTCEngine();
 	localStream = new RTCStream({audio:true,video:true,attributes:{
         test:'test'
-    }});
+	}});
+
+	await localStream.setupLocalMedia();
+
+	playVideo(localStream);
 
 	localStream.addListener('errors', (error) => {
 
 		console.log('errors ', error);
 	});
-
-	//localStream.setupLocalMedia();
 	
 
 	localStream.addListener('initLocalStream', ()=> {
 
 		console.log('initLocalStream =====');
-		
-		playVideo(localStream);
 
 	});
 
@@ -211,10 +211,10 @@ function init() {
 		console.log('stream  audioLevel ', stream.streamId, ' audioLevel ', audioLevel);
 	});
 
-	rtcEngine.addListener('state', (state) => {
+	rtcEngine.addListener('state', async (state) => {
         
 		if(state === RTCEngine.CONNECTED){
-			rtcEngine.addStream(localStream);
+			await rtcEngine.addStream(localStream);
 		}
 
 	});
