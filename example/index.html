@@ -116,6 +116,7 @@ async function init() {
 	audioSelect.onchange = audioStartSelect;
 
 	rtcEngine = new RTCEngine();
+	
 	localStream = new RTCStream({audio:true,video:true,attributes:{
         test:'test'
 	}});
@@ -214,7 +215,7 @@ async function init() {
 	rtcEngine.addListener('state', async (state) => {
         
 		if(state === RTCEngine.CONNECTED){
-			await rtcEngine.addStream(localStream);
+			rtcEngine.addStream(localStream);
 		}
 
 	});
