@@ -8,7 +8,7 @@ const vinyl_source_stream = require('vinyl-source-stream');
 const gulp = require('gulp');
 const eslint = require('gulp-eslint');
 const plumber = require('gulp-plumber');
-const uglify = require('gulp-uglify');
+const minify = require('gulp-minify');
 const rename = require('gulp-rename');
 const filelog = require('gulp-filelog');
 const replace = require('gulp-replace');
@@ -89,7 +89,8 @@ gulp.task('lint', function () {
 				'no-empty'                           : 0,
 			},
 			parserOptions: {
-				sourceType: 'module'
+				sourceType: 'module',
+				ecmaVersion: 2017
 			}
 		})).pipe(eslint.format());
 });
@@ -118,7 +119,7 @@ gulp.task('uglify', function () {
 	return gulp.src(src)
 		.pipe(filelog('uglify'))
 		.pipe(expect(EXPECT_OPTS, src))
-		.pipe(uglify())
+		.pipe(minify())
 		.pipe(header(BANNER, BANNER_OPTS))
 		.pipe(rename(BUILDS.compressed))
 		.pipe(gulp.dest('dist/'));
