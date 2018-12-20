@@ -131,11 +131,10 @@ async function init() {
 
 	playVideo(localStream);
 
-	localStream.addListener('errors', (error) => {
+	localStream.on('errors', (error) => {
 		console.log('errors ', error);
 	});
 
-	
 
 	localStream.on('initLocalStream', ()=> {
 		console.log('initLocalStream =====');
@@ -145,7 +144,7 @@ async function init() {
 		console.dir(peers);
 	})
 
-	localStream.addListener('shutdownLocalMedia',()=> {
+	localStream.on('shutdownLocalMedia',()=> {
 
 		console.log('shutdownLocalMedia');
         let _localVideo = localVideo.firstChild;
@@ -156,37 +155,34 @@ async function init() {
         
 	});
 
-	rtcEngine.addListener('addLocalStream',(stream) => {
+	rtcEngine.on('addLocalStream',(stream) => {
 
 		console.log('addLocalStream =========', stream);
 
 	});
 
-	rtcEngine.addListener('removeLocalStream', (stream) => {
+	rtcEngine.on('removeLocalStream', (stream) => {
         
 		console.log('removeLocalStream ======', stream);
 	});
 
-	rtcEngine.addListener('addRemoteStream', (stream) => {
+	rtcEngine.on('addRemoteStream', (stream) => {
 		console.log('addRemoteStream ', stream);
         addRemoteVideo(stream);
 	});
 
-	rtcEngine.addListener('removeRemoteStream', (stream) => {
+	rtcEngine.on('removeRemoteStream', (stream) => {
 
 		console.log('removeRemoteStream ', stream);
 
 		removeRemoteVideo(stream.streamId, stream.mediastream);
 	});
 
-	rtcEngine.addListener('state', (newState) => {
-
+	rtcEngine.on('state', (newState) => {
 		console.log('state change ', newState);
-
 	});
 
 	rtcEngine.on('joined', async (peers) => {
-
 		console.log('peers ====')
 		console.dir(peers)
 
@@ -197,45 +193,46 @@ async function init() {
 		}
 	})
 
-	rtcEngine.addListener('peerConnected', (peerId) => {
-
+	rtcEngine.on('peerConnected', (peerId) => {
 		console.log('new peer come ', peerId);
 	});
 
-	rtcEngine.addListener('peerRemoved', (peerId) => {
-
+	rtcEngine.on('peerRemoved', (peerId) => {
 		console.log('peer has leave ', peerId);
 	});
 
-	rtcEngine.addListener('muteRemoteVideo',(stream,muted) => {
-
+	rtcEngine.on('muteRemoteVideo',(stream,muted) => {
 		console.log('remote stream ', stream.streamId);
-
 		console.log('remote stream video muted ', muted);
-
 	});
 
-	rtcEngine.addListener('muteRemoteAudio',(stream, muted) => {
-
+	rtcEngine.on('muteRemoteAudio',(stream, muted) => {
 		console.log('remote stream ', stream.streamId);
 		console.log('remote stream audio muted ', muted);
 	});
 
-	rtcEngine.addListener('state', async (state) => {
+	rtcEngine.on('streamPublished', async (peer) => {
+		if (peer.streams.length) {
+			let streamId = peer.streams[0].streamId;
+			await rtcEngine.subscribe(streamId);
+		}
+	})
+
+	rtcEngine.on('streamUnpublished', async (peer) => {
+		console.error('streamUnpublished');
+		console.dir(peer);
+	})
+
+	rtcEngine.on('state', async (state) => {
 		if(state === RTCEngine.CONNECTED){
 			rtcEngine.publish(localStream);
 		}
 	});
 
-	rtcEngine.generateTestToken(tokenUrl,appSecret,room,user,(error,token) => {
-		
-		if(!error) {
-			rtcEngine.joinRoom(token);
-		}
-	});
+	const token = await rtcEngine.generateTestToken(tokenUrl,appSecret,room,user);
+	rtcEngine.joinRoom(token);
 
 }
-
 
 
 // function playVideo(element, stream) {
