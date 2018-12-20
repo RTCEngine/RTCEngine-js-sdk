@@ -28,7 +28,6 @@ let tokenUrl = 'http://localhost:3888/api/generateToken'
 let localVideo = null;
 let remoteContainer = null;
 
-
 let rtcEngine = null;
 let localStream = null;
 let localStream2 = null;
@@ -80,6 +79,11 @@ function audioStartSelect() {
 }
 
 
+async function subscribeStream() {
+
+	await rtcEngine.subscribe(streamId);
+}
+
 function gotDevices(deviceInfos) {
 
 	for(var i= 0; i !== deviceInfos.length; ++i){
@@ -101,6 +105,8 @@ function gotDevices(deviceInfos) {
 
 
 async function init() {
+
+
 
 	localVideo = document.getElementById('local_video');
 
@@ -126,21 +132,18 @@ async function init() {
 	playVideo(localStream);
 
 	localStream.addListener('errors', (error) => {
-
 		console.log('errors ', error);
 	});
+
 	
 
-	localStream.addListener('initLocalStream', ()=> {
-
+	localStream.on('initLocalStream', ()=> {
 		console.log('initLocalStream =====');
-
 	});
 
-	localStream.addListener('localStreamUpdate', (stream) => {
-
-		console.log('localStream update');
-	});
+	localStream.on('joined', async(peers) => {
+		console.dir(peers);
+	})
 
 	localStream.addListener('shutdownLocalMedia',()=> {
 
@@ -182,6 +185,18 @@ async function init() {
 
 	});
 
+	rtcEngine.on('joined', async (peers) => {
+
+		console.log('peers ====')
+		console.dir(peers)
+
+		for (let peer of peers) {
+			for(let stream of peer.streams) {
+				await rtcEngine.subscribe(stream.streamId);
+			}
+		}
+	})
+
 	rtcEngine.addListener('peerConnected', (peerId) => {
 
 		console.log('new peer come ', peerId);
@@ -206,18 +221,10 @@ async function init() {
 		console.log('remote stream audio muted ', muted);
 	});
 
-
-	rtcEngine.addListener('audioLevel', (stream, audioLevel) => {
-		
-		console.log('stream  audioLevel ', stream.streamId, ' audioLevel ', audioLevel);
-	});
-
 	rtcEngine.addListener('state', async (state) => {
-        
 		if(state === RTCEngine.CONNECTED){
-			rtcEngine.addStream(localStream);
+			rtcEngine.publish(localStream);
 		}
-
 	});
 
 	rtcEngine.generateTestToken(tokenUrl,appSecret,room,user,(error,token) => {
@@ -226,8 +233,6 @@ async function init() {
 			rtcEngine.joinRoom(token);
 		}
 	});
-	
-
 
 }
 
@@ -405,10 +410,10 @@ function requestStream() {
             <button onclick="leaveRoom();">
                 leaveRoom
 			</button>
-			
-			<button onclick="requestStream();">
-                requestStream
-            </button>
+
+			<button onclick="subscribeStream();">
+                subscribeStream
+			</button>
             
 			<span id="state_span">  </span>
 		</div>

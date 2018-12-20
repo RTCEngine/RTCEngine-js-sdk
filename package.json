@@ -22,6 +22,7 @@
     "random-string": "^0.2.0",
     "sdp-transform": "^2.4.1",
     "socket.io-client": "^2.1.1",
+    "socketio-transaction": "^1.0.2",
     "webrtc-adapter": "^6.3.0"
   },
   "devDependencies": {
