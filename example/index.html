@@ -106,8 +106,6 @@ function gotDevices(deviceInfos) {
 
 async function init() {
 
-
-
 	localVideo = document.getElementById('local_video');
 
 	remoteContainer = document.getElementById('remote_container');
@@ -211,16 +209,24 @@ async function init() {
 		console.log('remote stream audio muted ', muted);
 	});
 
-	rtcEngine.on('streamPublished', async (peer) => {
-		if (peer.streams.length) {
-			let streamId = peer.streams[0].streamId;
+	rtcEngine.on('streamPublished', async (stream, peer) => {
+		// if (peer.streams.length) {
+		// 	let streamId = peer.streams[0].streamId;
+		// 	await rtcEngine.subscribe(streamId);
+		// }
+		console.error('streamPublished');
+		console.dir(peer)
+		
+		if (stream) {
+			let streamId = stream.streamId;
 			await rtcEngine.subscribe(streamId);
 		}
 	})
 
-	rtcEngine.on('streamUnpublished', async (peer) => {
+	rtcEngine.on('streamUnpublished', async (stream) => {
 		console.error('streamUnpublished');
-		console.dir(peer);
+
+		removeRemoteVideo(stream.streamId, stream.mediastream);
 	})
 
 	rtcEngine.on('state', async (state) => {
