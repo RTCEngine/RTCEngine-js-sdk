@@ -160,7 +160,6 @@ async function init() {
 	});
 
 	rtcEngine.on('removeLocalStream', (stream) => {
-        
 		console.log('removeLocalStream ======', stream);
 	});
 
@@ -170,9 +169,8 @@ async function init() {
 	});
 
 	rtcEngine.on('removeRemoteStream', (stream) => {
-
+		
 		console.log('removeRemoteStream ', stream);
-
 		removeRemoteVideo(stream.streamId, stream.mediastream);
 	});
 
