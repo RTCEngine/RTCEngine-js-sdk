@@ -222,8 +222,8 @@ async function init() {
 	})
 
 	rtcEngine.on('streamUnpublished', async (stream) => {
-		console.error('streamUnpublished');
 
+		console.error('streamUnpublished');
 		removeRemoteVideo(stream.streamId, stream.mediastream);
 	})
 
@@ -278,7 +278,7 @@ function removeRemoteVideo(id, stream) {
 		remoteContainer.removeChild(element);
 	}
 	else {
-		console.log('Remote video element not found');
+		console.error('Remote video element not found');
 	}
 }
 
