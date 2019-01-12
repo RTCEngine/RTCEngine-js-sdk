@@ -178,14 +178,11 @@ async function init() {
 		console.log('state change ', newState);
 	});
 
-	rtcEngine.on('joined', async (peers) => {
-		console.log('peers ====')
-		console.dir(peers)
+	rtcEngine.on('joined', async (streams) => {
 
-		for (let peer of peers) {
-			for(let stream of peer.streams) {
-				await rtcEngine.subscribe(stream.streamId);
-			}
+		console.dir(streams)
+		for (let stream of streams) {
+			await rtcEngine.subscribe(stream.publisherId);	
 		}
 	})
 
@@ -207,16 +204,16 @@ async function init() {
 		console.log('remote stream audio muted ', muted);
 	});
 
-	rtcEngine.on('streamPublished', async (stream, peer) => {
+	rtcEngine.on('streamPublished', async (stream) => {
 		// if (peer.streams.length) {
 		// 	let streamId = peer.streams[0].streamId;
 		// 	await rtcEngine.subscribe(streamId);
 		// }
 		console.error('streamPublished');
-		console.dir(peer)
+		console.dir(stream)
 		
 		if (stream) {
-			let streamId = stream.streamId;
+			let streamId = stream.publisherId;
 			await rtcEngine.subscribe(streamId);
 		}
 	})
