@@ -80,8 +80,25 @@ function audioStartSelect() {
 
 
 async function subscribeStream() {
-
 	await rtcEngine.subscribe(streamId);
+}
+
+
+async function unsubscribeStream() {
+	let remoteStream = rtcEngine.getRemoteStreams()[0];
+
+	if (remoteStream) {
+		await rtcEngine.unsubsribe(remoteStream);
+	}
+}
+
+
+async function unpublishStream() {
+	let localStream = rtcEngine.getLocalStreams()[0];
+	
+	if (localStream) {
+		await rtcEngine.unpublish(localStream);
+	}
 }
 
 function gotDevices(deviceInfos) {
@@ -352,9 +369,6 @@ function addSecondStream(){
 
 }
 
-function setAttributes(){
-    localStream.setAttributes({msid:localStream.streamId})
-}
 
 function leaveRoom() {
     rtcEngine.leaveRoom()
@@ -402,9 +416,6 @@ function requestStream() {
             <button onclick="addSecondStream();">
                 addSecondStream 
             </button>
-            <button onclick="setAttributes();">
-                setAttribute
-            </button>
             <button onclick="leaveRoom();">
                 leaveRoom
 			</button>
@@ -412,7 +423,15 @@ function requestStream() {
 			<button onclick="subscribeStream();">
                 subscribeStream
 			</button>
-            
+
+			<button onclick="unsubscribeStream();">
+                unsubscribeStream
+			</button>
+
+			<button onclick="unpublishStream();">
+                unpublishStream
+			</button>
+
 			<span id="state_span">  </span>
 		</div>
 		Remote videos:
