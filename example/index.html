@@ -19,11 +19,10 @@
 
 window.localStorage.setItem('debug', '*WARN* *ERROR*');
 
-let appSecret = 'test_secret';
-let room = 'test_room';
-let user = Math.random().toString(36).substring(7);
 
-let tokenUrl = 'http://localhost:3888/api/generateToken'
+let room = 'test_room';
+
+let configUrl = 'http://127.0.0.1:3888/api/config'
 
 let localVideo = null;
 let remoteContainer = null;
@@ -79,8 +78,8 @@ function audioStartSelect() {
 }
 
 
-async function subscribeStream() {
-	await rtcEngine.subscribe(streamId);
+async function subscribeStream(userid) {
+	await rtcEngine.subscribe(userid);
 }
 
 
@@ -139,15 +138,15 @@ async function init() {
 	rtcEngine = new RTCEngine();
 	
 	localStream = new RTCStream({audio:true,video:true,attributes:{
-        test:'test'
+		test:'test'
 	}});
 
 	await localStream.setupLocalMedia();
 
-	playVideo(localStream);
+	localStream.play(localVideo)
 
-	localStream.on('errors', (error) => {
-		console.log('errors ', error);
+	localStream.on('error', (error) => {
+		console.error(error);
 	});
 
 
@@ -195,21 +194,11 @@ async function init() {
 		console.log('state change ', newState);
 	});
 
-	rtcEngine.on('joined', async (streams) => {
+	rtcEngine.on('joined', async () => {
 
-		console.dir(streams)
-		for (let stream of streams) {
-			await rtcEngine.subscribe(stream.publisherId);	
-		}
+		console.log('joined')
 	})
 
-	rtcEngine.on('peerConnected', (peerId) => {
-		console.log('new peer come ', peerId);
-	});
-
-	rtcEngine.on('peerRemoved', (peerId) => {
-		console.log('peer has leave ', peerId);
-	});
 
 	rtcEngine.on('muteRemoteVideo',(stream,muted) => {
 		console.log('remote stream ', stream.streamId);
@@ -226,18 +215,14 @@ async function init() {
 		// 	let streamId = peer.streams[0].streamId;
 		// 	await rtcEngine.subscribe(streamId);
 		// }
-		console.error('streamPublished');
-		console.dir(stream)
-		
-		if (stream) {
-			let streamId = stream.publisherId;
-			await rtcEngine.subscribe(streamId);
-		}
+		console.log('streamPublished', stream.publisherId);
+
+		await rtcEngine.subscribe(stream.publisherId)
 	})
 
 	rtcEngine.on('streamUnpublished', async (stream) => {
 
-		console.error('streamUnpublished');
+		console.log('streamUnpublished', );
 		removeRemoteVideo(stream.streamId, stream.mediastream);
 	})
 
@@ -247,34 +232,41 @@ async function init() {
 		}
 	});
 
-	const token = await rtcEngine.generateTestToken(tokenUrl,appSecret,room,user);
-	rtcEngine.joinRoom(token);
+	const response = await fetch(configUrl, {
+            body: JSON.stringify({}),
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            method: 'POST'
+        });
+
+	let data = await response.json();
+
+	let signallingServer = data.d.signallingServer
+	let config = data.d 
+
+	rtcEngine.joinRoom(room, signallingServer, config);
+
 
 }
 
 
-// function playVideo(element, stream) {
-// 	if ('srcObject' in element) {
-// 		element.srcObject = stream;
-// 	}
-// 	else {
-// 		element.src = window.URL.createObjectURL(stream);
-// 	}
-// 	element.play();
-// 	element.volume = 1;
-// }
-
-
-
-function playVideo(stream) {
-	local_video.appendChild(stream.videoElement);
-}
 
 function addRemoteVideo(stream) {
 
+	let remoteVideo = document.createElement('video');
+
+	remoteVideo.setAttribute('playsinline', true);
+    remoteVideo.setAttribute('autoplay', true);
+
 	remoteStream = stream;
-	stream.videoElement.id = 'remote_' + stream.streamId;
-	remoteContainer.appendChild(stream.videoElement);
+
+	remoteVideo.id = 'remote_' + stream.streamId;
+
+	stream.play(remoteVideo);
+
+	remoteContainer.appendChild(remoteVideo);
 }
 
 
@@ -390,7 +382,10 @@ function requestStream() {
 	<div id="conference">
 		<div>
 			Local video<br />
-			<div id="local_video"  style="width: 320px; height: 240px; border: 1px solid black;"></div>
+			<div style="width: 320px; height: 240px; border: 1px solid black;">
+				<video id="local_video" width="320" height="240" playsinline autoplay>
+				</video>
+			</div>
 
 			<div class="select">
 			<label for="videoSource">Video source: </label><select id="videoSource"></select>
@@ -418,14 +413,6 @@ function requestStream() {
             </button>
             <button onclick="leaveRoom();">
                 leaveRoom
-			</button>
-
-			<button onclick="subscribeStream();">
-                subscribeStream
-			</button>
-
-			<button onclick="unsubscribeStream();">
-                unsubscribeStream
 			</button>
 
 			<button onclick="unpublishStream();">
