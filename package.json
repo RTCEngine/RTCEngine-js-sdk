@@ -10,7 +10,6 @@
   "author": "notedit <notedit@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.18.0",
     "bowser": "^1.9.3",
     "browser": "^0.2.6",
     "debug": "^2.6.9",

@@ -211,10 +211,7 @@ async function init() {
 	});
 
 	rtcEngine.on('streamPublished', async (stream) => {
-		// if (peer.streams.length) {
-		// 	let streamId = peer.streams[0].streamId;
-		// 	await rtcEngine.subscribe(streamId);
-		// }
+		
 		console.log('streamPublished', stream.publisherId);
 
 		await rtcEngine.subscribe(stream.publisherId)
@@ -243,11 +240,9 @@ async function init() {
 
 	let data = await response.json();
 
-	let signallingServer = data.d.signallingServer
-	let config = data.d 
+	let { signallingServer, iceServers } = data.d
 
-	rtcEngine.joinRoom(room, signallingServer, config);
-
+	rtcEngine.joinRoom(room, signallingServer, { iceServers });
 
 }
 
