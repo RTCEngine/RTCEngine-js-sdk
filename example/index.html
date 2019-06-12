@@ -22,14 +22,14 @@ window.localStorage.setItem('debug', '*WARN* *ERROR*');
 
 let room = 'test_room';
 
-let configUrl = 'http://127.0.0.1:3888/api/config'
+let signallingServer = 'http://127.0.0.1:3888/'
 
 let localVideo = null;
 let remoteContainer = null;
 
 let rtcEngine = null;
 let localStream = null;
-let localStream2 = null;
+
 let remoteStream = null;
 
 let videoSelect = null;
@@ -78,22 +78,19 @@ function audioStartSelect() {
 }
 
 
-async function subscribeStream(userid) {
-	await rtcEngine.subscribe(userid);
+async function subscribeStream(streamId) {
+	await rtcEngine.subscribe(streamId);
 }
 
 
-async function unsubscribeStream() {
-	let remoteStream = rtcEngine.getRemoteStreams()[0];
-
-	if (remoteStream) {
-		await rtcEngine.unsubsribe(remoteStream);
-	}
+async function unsubscribeStream(streamId) {
+	await rtcEngine.unsubsribe(streamId);
 }
+
 
 
 async function unpublishStream() {
-	let localStream = rtcEngine.getLocalStreams()[0];
+	let localStream = rtcEngine.getLocalStream();
 	
 	if (localStream) {
 		await rtcEngine.unpublish(localStream);
@@ -149,46 +146,37 @@ async function init() {
 		console.error(error);
 	});
 
-
 	localStream.on('initLocalStream', ()=> {
 		console.log('initLocalStream =====');
 	});
 
-	localStream.on('joined', async(peers) => {
-		console.dir(peers);
-	})
 
 	localStream.on('shutdownLocalMedia',()=> {
-
 		console.log('shutdownLocalMedia');
         let _localVideo = localVideo.firstChild;
         while( _localVideo ) {
             localVideo.removeChild(_localVideo);
             _localVideo = localVideo.firstChild;
         }
-        
 	});
 
-	rtcEngine.on('addLocalStream',(stream) => {
 
-		console.log('addLocalStream =========', stream);
+	// rtcEngine.on('addLocalStream',(stream) => {
+	// 	console.log('addLocalStream =========', stream);
 
-	});
+	// });
 
-	rtcEngine.on('removeLocalStream', (stream) => {
-		console.log('removeLocalStream ======', stream);
-	});
-
-	rtcEngine.on('addRemoteStream', (stream) => {
-		console.log('addRemoteStream ', stream);
-        addRemoteVideo(stream);
-	});
-
-	rtcEngine.on('removeRemoteStream', (stream) => {
+	// rtcEngine.on('removeLocalStream', (stream) => {
+	// 	console.log('removeLocalStream ======', stream);
 		
-		console.log('removeRemoteStream ', stream);
-		removeRemoteVideo(stream.streamId, stream.mediastream);
-	});
+	// });
+
+	// rtcEngine.on('addRemoteStream', (stream) => {
+	// 	console.log('addRemoteStream streamId', stream.streamId);
+	// 	console.log('addRemoteStream publisherId', stream.publisherId);
+    //     
+	// });
+
 
 	rtcEngine.on('state', (newState) => {
 		console.log('state change ', newState);
@@ -198,7 +186,6 @@ async function init() {
 
 		console.log('joined')
 	})
-
 
 	rtcEngine.on('muteRemoteVideo',(stream,muted) => {
 		console.log('remote stream ', stream.streamId);
@@ -210,17 +197,26 @@ async function init() {
 		console.log('remote stream audio muted ', muted);
 	});
 
-	rtcEngine.on('streamPublished', async (stream) => {
-		
-		console.log('streamPublished', stream.publisherId);
-
-		await rtcEngine.subscribe(stream.publisherId)
+	rtcEngine.on('streamAdded', async (stream) => {
+		console.log('streamAdded');
+		await rtcEngine.subscribe(stream);
 	})
 
-	rtcEngine.on('streamUnpublished', async (stream) => {
+	rtcEngine.on('streamRemoved', async (stream) => {
 
-		console.log('streamUnpublished', );
-		removeRemoteVideo(stream.streamId, stream.mediastream);
+		await rtcEngine.unsubsribe(stream);
+		stream.stop();
+		removeRemoteVideo(stream);
+	})
+
+	rtcEngine.on('streamSubscribed', async (stream) => {
+		console.log('streamSubscribed', stream.publisherId);
+		addRemoteVideo(stream);
+	})
+
+	rtcEngine.on('streamUnsubscribed', async (stream) => {
+		
+		console.log('streamUnsubscribed', stream.publisherId);
 	})
 
 	rtcEngine.on('state', async (state) => {
@@ -229,20 +225,7 @@ async function init() {
 		}
 	});
 
-	const response = await fetch(configUrl, {
-            body: JSON.stringify({}),
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            method: 'POST'
-        });
-
-	let data = await response.json();
-
-	let { signallingServer, iceServers } = data.d
-
-	rtcEngine.joinRoom(room, signallingServer, { iceServers });
+	rtcEngine.joinRoom(room, signallingServer, {});
 
 }
 
@@ -270,9 +253,8 @@ function muteAudio() {
     localStream.mute()
 }
 
-function removeRemoteVideo(id, stream) {
-	console.log('Remote video removed id: ' + id);
-	let element = document.getElementById('remote_' + id);
+function removeRemoteVideo(stream) {
+	let element = document.getElementById('remote_' + stream.streamId);
 	if (element) {
 		// element.pause();
 		// element.srcObject = null;
@@ -291,32 +273,7 @@ function removeAllRemoteVideo() {
 	}
 }
 
-function updateView() {
-	if (peerConnection) {
-		hideElement('roomsSelect');
-		showElement('conference');
-		enabelElement('disconnect_button');
-	}
-	else {
-		showElement('roomsSelect');
-		hideElement('conference');
-		disableElement('disconnect_button');
-	}
-}
 
-function enabelElement(id) {
-	let element = document.getElementById(id);
-	if (element) {
-		element.removeAttribute('disabled');
-	}
-}
-
-function disableElement(id) {
-	let element = document.getElementById(id);
-	if (element) {
-		element.setAttribute('disabled', '1');
-	}		
-}
 
 function hideElement(id) {
 	let element = document.getElementById(id);
@@ -333,7 +290,7 @@ function showElement(id) {
 }
 
 function removeStream(){
-	rtcEngine.removeStream(localStream);
+	
 }
 
 
@@ -345,16 +302,6 @@ function removeAndAdd() {
     },3000);
 }
 
-
-function addSecondStream(){
-
-    localStream2 = new RTCStream({audio:true,video:true,attributes:{
-        test:'test2'
-    }})
-
-    rtcEngine.addStream(localStream2);
-
-}
 
 
 function leaveRoom() {
@@ -396,23 +343,12 @@ function requestStream() {
 			</button>
 			<button onclick="muteRemoteVideo();">
                 muteRemoteVideo 
-            </button>
-			<button onclick="removeStream();">
-				removeStream
 			</button>
-            <button onclick="removeAndAdd();">
-                removeAndAdd
-            </button>
-            <button onclick="addSecondStream();">
-                addSecondStream 
-            </button>
+			
             <button onclick="leaveRoom();">
                 leaveRoom
 			</button>
 
-			<button onclick="unpublishStream();">
-                unpublishStream
-			</button>
 
 			<span id="state_span">  </span>
 		</div>
