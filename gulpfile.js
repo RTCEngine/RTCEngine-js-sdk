@@ -150,7 +150,7 @@ gulp.task('livebrowser', (done) =>
 
 gulp.task('html', () =>
 {
-	return gulp.src(['example/index.html'])
+	return gulp.src(['example/index.html', 'example/sub.html'])
         .pipe(replace('=timestamp','='+ Math.random().toString(36).substring(7)))
 		.pipe(gulp.dest(DEV_OUTPUT_DIR));
 });
@@ -159,7 +159,7 @@ gulp.task('html', () =>
 gulp.task('watch', (done) =>
 {
 	// Watch changes in HTML.
-	gulp.watch([ 'example/index.html'], gulp.series(
+	gulp.watch([ 'example/index.html', 'example/sub.html'], gulp.series(
 		'html'
 	));
 

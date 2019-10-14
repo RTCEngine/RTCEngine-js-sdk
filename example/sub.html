@@ -144,7 +144,7 @@ async function init() {
 
 	
 
-	localStream.play(localVideo)
+	//localStream.play(localVideo)
 
 	localStream.on('error', (error) => {
 		console.error(error);
@@ -202,15 +202,15 @@ async function init() {
 	});
 
 	rtcEngine.on('streamAdded', async (stream) => {
-		// console.log('streamAdded');
-		// await rtcEngine.subscribe(stream);
+		console.log('streamAdded');
+		await rtcEngine.subscribe(stream);
 	})
 
 	rtcEngine.on('streamRemoved', async (stream) => {
 
-		// await rtcEngine.unsubsribe(stream);
-		// stream.stop();
-		// removeRemoteVideo(stream);
+		await rtcEngine.unsubsribe(stream);
+		stream.stop();
+		removeRemoteVideo(stream);
 	})
 
 	rtcEngine.on('streamSubscribed', async (stream) => {
@@ -225,7 +225,7 @@ async function init() {
 
 	rtcEngine.on('state', async (state) => {
 		if(state === RTCEngine.CONNECTED){
-			rtcEngine.publish(localStream);
+			//rtcEngine.publish(localStream);
 		}
 	});
 
