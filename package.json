@@ -20,7 +20,7 @@
     "jwt-decode": "^2.2.0",
     "random-string": "^0.2.0",
     "sdp-transform": "^2.4.1",
-    "socket.io-client": "^2.1.1",
+    "socket.io-client": "^2.5.0",
     "socketio-transaction": "^1.0.2",
     "webrtc-adapter": "^6.3.0"
   },
@@ -31,7 +31,7 @@
     "babel-preset-es2015": "^6.24.1",
     "babel-runtime": "^6.26.0",
     "babelify": "^8.0.0",
-    "browser-sync": "^2.26.5",
+    "browser-sync": "^2.27.10",
     "browserify": "^14.5.0",
     "eslint": "^4.19.1",
     "eslint-plugin-import": "^2.13.0",
